@@ -1,0 +1,579 @@
+{
+  "name": "Tuto Openclassrooms",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Formulaire de contact",
+        "formDescription": "Utilisez ce formulaire pour soumettre une demande de support, une demande commerciale ou toute autre sollicitation interne.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Prenom"
+            },
+            {
+              "fieldLabel": "Nom"
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "Type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Support"
+                  },
+                  {
+                    "option": "Sales"
+                  },
+                  {
+                    "option": "Autre"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Urgence (sur 5)",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "Description",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Envoyer",
+          "path": "formulaire-support",
+          "ignoreBots": true
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        -192
+      ],
+      "id": "4b954a17-1298-488c-bbd1-1a39f47da5d3",
+      "name": "On form submission",
+      "webhookId": "b071e4f1-0e6c-4557-9a39-c0c42a40db93"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2a61ed61-f07f-4b30-9632-fa1e378a71f7",
+              "name": "firstName",
+              "value": "={{ $json.Prenom }}",
+              "type": "string"
+            },
+            {
+              "id": "e60c185c-e416-48fe-9302-d3e36400fd6d",
+              "name": "lastName",
+              "value": "={{ $json.Nom.toUpperCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "7fd072a6-38ad-4c19-80a3-554882fbd736",
+              "name": "email",
+              "value": "={{ $json.Email }}",
+              "type": "string"
+            },
+            {
+              "id": "ac5bd273-3459-4240-ad3f-2415a0245c76",
+              "name": "type",
+              "value": "={{ $json.Type }}",
+              "type": "string"
+            },
+            {
+              "id": "b9f6ed47-2292-4a7c-9933-7543bf521234",
+              "name": "emergency",
+              "value": "={{ $json[\"Urgence (sur 5)\"] }}",
+              "type": "number"
+            },
+            {
+              "id": "017beeb0-b678-4f09-86e1-7e9174f4e1ed",
+              "name": "description",
+              "value": "={{ $json.Description }}",
+              "type": "string"
+            },
+            {
+              "id": "be975c9b-0fec-4e04-a47b-2040aee8e16e",
+              "name": "submittedAt",
+              "value": "={{ $json.submittedAt.toDateTime().format(\"dd/MM/yyyy\") }}",
+              "type": "string"
+            },
+            {
+              "id": "5c95a758-4c27-4823-8a14-99e6b7de990c",
+              "name": "submitedAtOriginal",
+              "value": "={{ $json.submittedAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -192
+      ],
+      "id": "40e86d47-312b-4071-b38b-1a4c2a7fc969",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "Support",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7826545d-258d-45b4-8884-bc09abf345f9"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Support"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2cbeab2d-b306-40cf-adcc-44e584ee6ec3",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "Sales",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sales"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        -112
+      ],
+      "id": "41fea24b-2650-4439-9f64-cc158c970c2f",
+      "name": "Switch by type"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8dc98a07-2bad-419c-a3c1-c9cf2c99f960",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "719e5b5e-057f-42dc-a399-a80b985529d5",
+              "leftValue": "={{ $json.description }}",
+              "rightValue": "test",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            },
+            {
+              "id": "0bd1998a-ca14-47d5-a468-356b8d55c89c",
+              "leftValue": "={{ ($json.description.match(/https?:\\/\\/[^\\s]+/g)?.length ?? 0) <= 3 }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -96
+      ],
+      "id": "19bc37eb-2043-4eae-9d4a-3d14d299ace5",
+      "name": "Form datas sanitizer"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BE0TG9WH4",
+          "mode": "list",
+          "cachedResultName": "support"
+        },
+        "text": "=*From* : {{ $json.firstName }} {{ $json.lastName }}\n*Email* : {{ $json.email }}\n*Description* : {{ $json.description }}\n*Emergency level* : {{ $json.emergency }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        -288
+      ],
+      "id": "507cf3bb-f421-41ea-8071-d662071f99da",
+      "name": "Send to support",
+      "webhookId": "2731d8cb-ba50-48eb-8d2d-2767f14d72a5",
+      "credentials": {
+        "slackApi": {
+          "id": "M7kFN8ThO2GA2XID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BE30R98M8",
+          "mode": "list",
+          "cachedResultName": "sales"
+        },
+        "text": "=*From* : {{ $json.firstName }} {{ $json.lastName }}\n*Email* : {{ $json.email }}\n*Description* : {{ $json.description }}\n*Emergency level* : {{ $json.emergency }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "9b4a53a5-1268-44f2-850b-b4aaa9083ef4",
+      "name": "Send to sales",
+      "webhookId": "2731d8cb-ba50-48eb-8d2d-2767f14d72a5",
+      "credentials": {
+        "slackApi": {
+          "id": "M7kFN8ThO2GA2XID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BE4RRFUDP",
+          "mode": "list",
+          "cachedResultName": "other-request"
+        },
+        "text": "=*From* : {{ $json.firstName }} {{ $json.lastName }}\n*Email* : {{ $json.email }}\n*Description* : {{ $json.description }}\n*Emergency level* : {{ $json.emergency }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        896,
+        96
+      ],
+      "id": "b76107a0-c6aa-4d45-b937-48ba8fc97089",
+      "name": "Send to other request",
+      "webhookId": "2731d8cb-ba50-48eb-8d2d-2767f14d72a5",
+      "credentials": {
+        "slackApi": {
+          "id": "M7kFN8ThO2GA2XID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appiGPVUlDVGzdxzL",
+          "mode": "list",
+          "cachedResultName": "n8n - tuto openclassrooms",
+          "cachedResultUrl": "https://airtable.com/appiGPVUlDVGzdxzL"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblDCg54aoNbyej9J",
+          "mode": "list",
+          "cachedResultName": "Formulaire de support",
+          "cachedResultUrl": "https://airtable.com/appiGPVUlDVGzdxzL/tblDCg54aoNbyej9J"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lastname": "={{ $json.lastName }}",
+            "firstname": "={{ $json.firstName }}",
+            "email": "={{ $json.email }}",
+            "type": "={{ $json.type }}",
+            "emergency": "={{ $json.emergency }}",
+            "description": "={{ $json.description }}",
+            "submitedAt": "={{ $json.submitedAtOriginal }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "firstname",
+              "displayName": "firstname",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "lastname",
+              "displayName": "lastname",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "emergency",
+              "displayName": "emergency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "submitedAt",
+              "displayName": "submitedAt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        -288
+      ],
+      "id": "9f5e5bb1-2a33-42b3-a65a-71f73d90d0ea",
+      "name": "Create a record in database",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "xZ2NmTEIJ764g38K",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Prenom": "theo",
+          "Nom": "baileche",
+          "Email": "baileche.theo@gmail.com",
+          "Type": "Sales",
+          "Urgence (sur 5)": 3,
+          "Description": "description ...",
+          "submittedAt": "2026-06-25T02:41:43.835+02:00",
+          "formMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Form datas sanitizer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a record in database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form datas sanitizer": {
+      "main": [
+        [
+          {
+            "node": "Switch by type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch by type": {
+      "main": [
+        [
+          {
+            "node": "Send to support",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to sales",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send to other request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Paris",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "INBg1tolrRhr6bIe"
+  },
+  "versionId": "1fd1279d-c605-42e6-b4c3-b7e4cfb33a1a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "afa5af0d9982d8deb4a756d1608a7b64dac0a5beee14fec646e1244951c7ba3d"
+  },
+  "nodeGroups": [],
+  "id": "C1yIVlDkkSBzP9Us",
+  "tags": [
+    {
+      "updatedAt": "2026-06-17T15:44:38.608Z",
+      "createdAt": "2026-06-17T15:44:38.608Z",
+      "id": "cJbzUAR5rlpTSMfX",
+      "name": "basics"
+    },
+    {
+      "updatedAt": "2026-06-22T13:16:17.261Z",
+      "createdAt": "2026-06-22T13:16:17.261Z",
+      "id": "lRHxpkgUX6FE6OAs",
+      "name": "tutorial"
+    }
+  ]
+}
